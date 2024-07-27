@@ -20,16 +20,17 @@ proc load(fn: string) =
     s = newFileStream(fn, fmRead)
     nfi: fileinfo
     str: array[0..12, char]
-    fNumber: uint16
+    fNumber: uint32 #uint16
+    i: uint16
 
   echo "Starting parse of the ", fn
 
-  s.setPosition(5)
-  fNumber = uint16(s.readInt16())
-  for i in 0..fNumber:
-    for i in 0..12:
-      str[i] = s.readChar()
-    nfi.name = ArrToStr(str)
+  s.setPosition(5) #Set cursor in file, skipping EALIB signature
+  fNumber = uint32(readInt16(s)) #scan number of packed files
+  for i in 0..fNumber: #for all of them
+    for c in 0..12: #scanning filename of fixed length of 13 characters,
+      str[c] = s.readChar() # file name (8.3 style), padded with nulls to 12 characters, and null terminated. 
+    nfi.name = ArrToStr(str) 
     discard uint8(s.readChar())
     nfi.offset = uint32(s.readInt32())
     table.add(nfi)
